@@ -2,39 +2,70 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
-            steps {
-                echo 'Building the app.js application...'
-                bat label: 'npm install', script: '"C:\\Program Files\\nodejs\\npm" install'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-                bat label: 'npm test', script: '"C:\\Program Files\\nodejs\\npm" test'
-                echo "Tests completed successfully"
-            }
-        }
-
-        stage('Deploy to Development') {
+        stage('Git Checkout') {
             when {
-                branch 'dev-test-nodejs'
+                anyOf {
+                    expression { env.BRANCH_NAME == 'dev-branch' }
+                    expression { env.BRANCH_NAME == 'prod-branch' }
+                }
             }
             steps {
-                echo 'Deploying the Node.js application to development environment...'
-                // Add deployment steps for development environment here
+                echo 'Checking out code from Git...'
+                git branch: env.BRANCH_NAME, url: 'https://github.com/NubeEra-Samples/MERN-CICD-DevProd.git'
             }
         }
 
-        stage('Deploy to Production') {
-            when {
-                branch 'prod-test-nodejs'
-            }
-            steps {
-                echo 'Deploying the Node.js application to production environment...'
-                // Add deployment steps for production environment here
-            }
+        // stage('install') {
+        //     when {
+        //         anyOf {
+        //             expression { env.BRANCH_NAME == 'dev-branch' }
+        //             expression { env.BRANCH_NAME == 'prod-branch' }
+        //         }
+        //     }
+        //     steps {
+        //         // For both Unix and Windows
+        //         bat 'npm install'
+        //     }
+        // }
+
+        // stage('create-env-dev') {
+        //     when {
+        //         branch 'dev-branch'
+        //     }
+        //     environment {
+        //         DEPLOYMENT_SERVER_IP = '54.206.101.252'  // Replace with your development server IP
+        //         DEPLOYMENT_PATH = '/home/ubuntu/my-nodejs-app'
+        //         SSH_KEY="key.pem"
+        //         SSH_KEY_CONTENTS=credentials("keypem")
+        //     }
+        //     steps {
+        //         withCredentials([
+        //             sshUserPrivateKey(credentialsId: "deploy-to-devlopment", keyFileVariable: 'SSH_KEY')
+        //         ]) {
+        //             echo 'Deploying the application'
+        //             script {
+        //                 if (isUnix()) {
+        //                     sh '''#!/bin/bash
+        //                         mkdir -p /var/lib/jenkins/.ssh
+        //                         ssh-keyscan ${$DEPLOYMENT_SERVER_IP} >> /var/lib/jenkins/.ssh/known_hosts
+        //                         rsync -avz --delete -e "ssh -i $SSH_KEY" ./ deployer@$DEPLOYMENT_SERVER_IP:$DEPLOYMENT_PATH
+        //                         ssh -i $SSH_KEY deployer@$DEPLOYMENT_SERVER_IP "cd $DEPLOYMENT_PATH && npm install && npm start &"
+        //                     '''
+        //                 } else {
+        //                     bat '''
+        //                         type nul > known_hosts
+        //                         ::mkdir -p  %userprofile%\\.ssh
+        //                         ssh-keyscan %DEPLOYMENT_SERVER_IP% >> %userprofile%\\.ssh\\known_hosts
+        //                         type nul > key.pem
+        //                         echo %SSH_KEY_CONTENTS% >> key.pem
+        //                         icacls key.pem /inheritance:r /grant:r "%USERNAME%:R"
+        //                         scp -r -i key.pem ./ deployer@%DEPLOYMENT_SERVER_IP%:%DEPLOYMENT_PATH%
+        //                         ssh -i key.pem deployer@%DEPLOYMENT_SERVER_IP% "cd %DEPLOYMENT_PATH% && npm install && start npm start"
+        //                     '''
+        //                 }
+        //             }
+        //         }
+        //     }
         }
     }
 
