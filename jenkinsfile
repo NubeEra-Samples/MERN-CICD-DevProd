@@ -35,7 +35,7 @@ pipeline {
             environment {
                 DEPLOYMENT_SERVER_IP = '54.206.101.252'  // Replace with your development server IP
                 DEPLOYMENT_PATH = '/home/ubuntu/my-nodejs-app'
-                SSH_KEY="mujahed.pem"
+                // SSH_KEY="mujahed.pem"
                 SSH_KEY_CONTENTS=credentials("key-pem")
             }
             steps {
@@ -53,6 +53,7 @@ pipeline {
                             '''
                         } else {
                             bat '''
+                                echo %SSH_KEY_CONTENTS%
                                 type nul > known_hosts
                                 echo %userprofile%
                                 ::mkdir -p  %userprofile%\\.ssh
